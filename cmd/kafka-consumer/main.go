@@ -3,67 +3,73 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"github.com/google/uuid"
+	"github.com/magnuswahlstrand/kafka-experiments-v2/library"
 	"log"
 )
 
-type Consumer struct {
-}
+type EventHandler struct{}
 
-func (*Consumer) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (*Consumer) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-func (c *Consumer) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (*EventHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (*EventHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h *EventHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
 		fmt.Println("received claim")
 		fmt.Printf("received claim: topic %q partition %d\n", msg.Topic, msg.Partition)
-
-		var s map[string]interface{}
-
-		err := json.Unmarshal(msg.Value, &s)
-		if err != nil {
-			log.Println("ERR", err)
-			continue
+		if err := h.messageReceived(msg.Value); err != nil {
+			return err
 		}
 
-		fmt.Println("success!")
-		fmt.Println(s)
 		sess.MarkMessage(msg, "")
 	}
 	return nil
 }
 
+type Event struct {
+	ID uuid.UUID `json:"id"`
+	Type string `json:"type"`
+}
+
+func (e Event) Validate() error {
+	if e.ID == uuid.Nil {
+		return errors.New("event ID is empty")
+	}
+	if e.Type != "my-event-type" {
+		return fmt.Errorf("invalid event type %s", e.Type)
+	}
+	return nil
+}
+
+func (h *EventHandler) messageReceived(payload []byte) error {
+	var event Event
+	if err := json.Unmarshal(payload, &event); err != nil {
+		return err
+	}
+
+	if err := event.Validate(); err != nil {
+		return err
+	}
+
+	// Do something here
+	fmt.Println("do something here")
+
+	return nil
+}
+
 func main() {
 	url := "localhost:9092"
-
 	topics := []string{"test"}
-	consumerGroup := "some-consumer-group"
-	config := sarama.NewConfig()
-	config.Version = sarama.V1_0_0_0
-	config.Consumer.Return.Errors = true
-
-	client, err := sarama.NewClient([]string{url}, config)
+	consumerGroupID := "some-consumer-group"
+	handler := &EventHandler{}
+	consumer, err := library.NewConsumer(url, topics, consumerGroupID, handler)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	group, err := sarama.NewConsumerGroupFromClient(consumerGroup, client)
-	if err != nil {
-		_ = client.Close()
-		log.Fatal(err)
-	}
-
-	// Handle errors
-	go func() {
-		for err := range group.Errors() {
-			fmt.Println("Some error", err)
-		}
-	}()
-
-	var consumer Consumer
-
-	err = group.Consume(context.Background(), topics, &consumer)
-	if err != nil {
+	if err := consumer.Start(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 }
