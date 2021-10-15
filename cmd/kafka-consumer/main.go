@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/google/uuid"
 	"github.com/magnuswahlstrand/kafka-experiments-v2/library"
 	"log"
+	"strings"
 )
 
 type EventHandler struct{}
@@ -60,11 +62,14 @@ func (h *EventHandler) messageReceived(payload []byte) error {
 }
 
 func main() {
-	url := "localhost:9092"
-	topics := []string{"test"}
+	addrList := flag.String("addr","localhost:9092","")
+	topic := flag.String("topic","test","")
+	flag.Parse()
+	addr := strings.Split(*addrList, ",")
+
 	consumerGroupID := "some-consumer-group"
 	handler := &EventHandler{}
-	consumer, err := library.NewConsumer(url, topics, consumerGroupID, handler)
+	consumer, err := library.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -28,12 +28,12 @@ func (c *Consumer) Shutdown() error {
 	return nil
 }
 
-func NewConsumer(url string, topics []string, consumerGroupID string, handler sarama.ConsumerGroupHandler) (*Consumer, error) {
+func NewConsumer(addr []string, topics []string, consumerGroupID string, handler sarama.ConsumerGroupHandler) (*Consumer, error) {
 	config := sarama.NewConfig()
 	config.Version = sarama.V1_1_1_0
 	config.Consumer.Return.Errors = true
 
-	client, err := sarama.NewClient([]string{url}, config)
+	client, err := sarama.NewClient(addr, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kafka client: %w", err)
 	}
