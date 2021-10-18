@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/google/uuid"
-	"github.com/magnuswahlstrand/kafka-experiments-v2/library"
+	"github.com/magnuswahlstrand/kafka-experiments-v2"
 	"log"
 	"strings"
 )
@@ -69,7 +69,7 @@ func main() {
 
 	consumerGroupID := "some-consumer-group"
 	handler := &EventHandler{}
-	consumer, err := library.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
+	consumer, err := kafka_experiments_v2.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
 	if err != nil {
 		log.Fatal(err)
 	}

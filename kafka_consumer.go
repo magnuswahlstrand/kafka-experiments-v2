@@ -1,4 +1,4 @@
-package library
+package kafka_experiments_v2
 
 import (
 	"context"
@@ -22,9 +22,12 @@ func (c *Consumer) Start(ctx context.Context) error {
 }
 
 func (c *Consumer) Shutdown() error {
-	// Best effort shutdown
-	_ = c.group.Close()
-	_ = c.client.Close()
+	if err := c.group.Close(); err != nil {
+		return err
+	}
+	if err := c.client.Close(); err != nil {
+		return err
+	}
 	return nil
 }
 

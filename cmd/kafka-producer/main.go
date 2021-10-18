@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"github.com/Shopify/sarama"
+	"github.com/magnuswahlstrand/kafka-experiments-v2"
 	"log"
 	"strings"
 )
@@ -14,9 +13,7 @@ func main() {
 	flag.Parse()
 	addr := strings.Split(*addrList, ",")
 
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(addr, config)
+	producer, err := kafka_experiments_v2.NewSyncProducer(addr, *topic)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,18 +23,7 @@ func main() {
 		"name": "magnus",
 	}
 
-	b, err := json.Marshal(event)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	kafkaMessage := &sarama.ProducerMessage{
-		Topic: *topic,
-		Value: sarama.ByteEncoder(b),
-	}
-
-	_, _, err = producer.SendMessage(kafkaMessage)
-	if err != nil {
+	if err := producer.SendJSONMessage(event); err != nil {
 		log.Fatal(err)
 	}
 
