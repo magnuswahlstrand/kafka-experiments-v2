@@ -1,8 +1,9 @@
-package kafka_experiments_v2
+package kafkalib
 
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/magnuswahlstrand/kafkalib/kafkatest"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -14,7 +15,7 @@ var (
 func TestConsume(t *testing.T) {
 
 	topic := uuid.NewString()
-	p, err := NewSyncProducer(testAddr, topic)
+	p, err := kafkatest.NewSyncProducer(testAddr, topic)
 	require.NoError(t, err)
 
 	consumerGroup := uuid.NewString()

@@ -1,4 +1,4 @@
-package kafka_experiments_v2
+package kafkatest
 
 import (
 	"encoding/json"

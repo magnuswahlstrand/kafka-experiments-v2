@@ -69,7 +69,7 @@ func main() {
 
 	consumerGroupID := "some-consumer-group"
 	handler := &EventHandler{}
-	consumer, err := kafka_experiments_v2.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
+	consumer, err := kafkalib.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
 	if err != nil {
 		log.Fatal(err)
 	}

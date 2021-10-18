@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/magnuswahlstrand/kafkalib"
+	"github.com/magnuswahlstrand/kafkalib/kafkatest"
 	"log"
 	"strings"
 )
@@ -13,7 +13,7 @@ func main() {
 	flag.Parse()
 	addr := strings.Split(*addrList, ",")
 
-	producer, err := kafka_experiments_v2.NewSyncProducer(addr, *topic)
+	producer, err := kafkatest.NewSyncProducer(addr, *topic)
 	if err != nil {
 		log.Fatal(err)
 	}
