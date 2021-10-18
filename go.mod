@@ -1,4 +1,4 @@
-module github.com/magnuswahlstrand/kafka-experiments-v2
+module github.com/magnuswahlstrand/kafkalib
 
 go 1.16
 

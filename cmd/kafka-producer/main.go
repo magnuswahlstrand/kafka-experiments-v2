@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/magnuswahlstrand/kafka-experiments-v2"
+	"github.com/magnuswahlstrand/kafkalib"
 	"log"
 	"strings"
 )

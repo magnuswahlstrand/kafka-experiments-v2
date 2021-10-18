@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/google/uuid"
-	"github.com/magnuswahlstrand/kafka-experiments-v2"
+	"github.com/magnuswahlstrand/kafkalib"
 	"log"
 	"strings"
 )
