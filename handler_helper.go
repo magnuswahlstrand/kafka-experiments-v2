@@ -49,10 +49,10 @@ func NewHandler(messageReceived func(payload []byte) error, opts ...HandlerOptio
 	// Add optional configuration
 	if len(opts) > 0 {
 		if opts[0].Setup != nil {
-			h.setup = *opts[0].Setup
+			h.setup = opts[0].Setup
 		}
 		if opts[0].Cleanup != nil {
-			h.cleanup = *opts[0].Cleanup
+			h.cleanup = opts[0].Cleanup
 		}
 	}
 
