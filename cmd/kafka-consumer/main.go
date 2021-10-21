@@ -31,8 +31,8 @@ func (h *EventHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sara
 }
 
 type Event struct {
-	ID uuid.UUID `json:"id"`
-	Type string `json:"type"`
+	ID   uuid.UUID `json:"id"`
+	Type string    `json:"type"`
 }
 
 func (e Event) Validate() error {
@@ -45,7 +45,7 @@ func (e Event) Validate() error {
 	return nil
 }
 
-func (h *EventHandler) messageReceived(payload []byte) error {
+func messageReceived(payload []byte) error {
 	var event Event
 	if err := json.Unmarshal(payload, &event); err != nil {
 		return err
@@ -62,13 +62,19 @@ func (h *EventHandler) messageReceived(payload []byte) error {
 }
 
 func main() {
-	addrList := flag.String("addr","localhost:9092","")
-	topic := flag.String("topic","test","")
+	addrList := flag.String("addr", "localhost:9092", "")
+	topic := flag.String("topic", "test", "")
 	flag.Parse()
 	addr := strings.Split(*addrList, ",")
 
 	consumerGroupID := "some-consumer-group"
-	handler := &EventHandler{}
+
+	handler := kafkalib.NewHandler(
+		messageReceived,
+		kafkalib.HandlerOptions{
+			Setup:   func(_ sarama.ConsumerGroupSession) error { fmt.Println("setup complete"); return nil },
+			Cleanup: func(_ sarama.ConsumerGroupSession) error { fmt.Println("clean up"); return nil },
+		})
 	consumer, err := kafkalib.NewConsumer(addr, []string{*topic}, consumerGroupID, handler)
 	if err != nil {
 		log.Fatal(err)

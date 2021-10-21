@@ -1,7 +1,6 @@
 package kafkalib
 
 import (
-	"fmt"
 	"github.com/Shopify/sarama"
 )
 
@@ -21,8 +20,6 @@ func (h *Handler) Cleanup(sess sarama.ConsumerGroupSession) error {
 }
 func (h *Handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		fmt.Println("received claim")
-		fmt.Printf("received claim: topic %q partition %d\n", msg.Topic, msg.Partition)
 		if err := h.messageReceived(msg.Value); err != nil {
 			return err
 		}
@@ -32,14 +29,32 @@ func (h *Handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 	return nil
 }
 
-func NewHandler(messageReceived func(payload []byte) error) *Handler {
-	return &Handler{
-		setup: func(_ sarama.ConsumerGroupSession) error {
-			return nil
-		},
-		cleanup: func(_ sarama.ConsumerGroupSession) error {
-			return nil
-		},
+type HandlerOptions struct {
+	Setup   func(sess sarama.ConsumerGroupSession) error
+	Cleanup func(sess sarama.ConsumerGroupSession) error
+}
+
+func NewHandler(messageReceived func(payload []byte) error, opts ...HandlerOptions) *Handler {
+	var (
+		defaultSetup   = func(_ sarama.ConsumerGroupSession) error { return nil }
+		defaultCleanup = func(_ sarama.ConsumerGroupSession) error { return nil }
+	)
+
+	h := &Handler{
 		messageReceived: messageReceived,
+		setup:           defaultSetup,
+		cleanup:         defaultCleanup,
 	}
+
+	// Add optional configuration
+	if len(opts) > 0 {
+		if opts[0].Setup != nil {
+			h.setup = *opts[0].Setup
+		}
+		if opts[0].Cleanup != nil {
+			h.cleanup = *opts[0].Cleanup
+		}
+	}
+
+	return h
 }
