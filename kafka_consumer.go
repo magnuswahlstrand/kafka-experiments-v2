@@ -2,10 +2,10 @@ package kafkalib
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/Shopify/sarama"
 )
-
 
 type Consumer struct {
 	client  sarama.Client
@@ -31,10 +31,20 @@ func (c *Consumer) Shutdown() error {
 	return nil
 }
 
-func NewConsumer(addr []string, topics []string, consumerGroupID string, handler sarama.ConsumerGroupHandler) (*Consumer, error) {
+type ConsumerOptions struct {
+	TLSConfig *tls.Config
+}
+
+func NewConsumer(addr []string, topics []string, consumerGroupID string, handler sarama.ConsumerGroupHandler, opts ConsumerOptions) (*Consumer, error) {
 	config := sarama.NewConfig()
 	config.Version = sarama.V1_1_1_0
 	config.Consumer.Return.Errors = true
+
+	// Add configuration
+	if opts.TLSConfig != nil {
+		config.Net.TLS.Enable = true
+		config.Net.TLS.Config = opts.TLSConfig
+	}
 
 	client, err := sarama.NewClient(addr, config)
 	if err != nil {
